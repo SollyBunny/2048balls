@@ -1,0 +1,26 @@
+<script src="matter.js"></script>
+
+<style>
+    #can {
+        width: 100vw;
+        height: 100vh;
+        position: absolute;
+        left: 0;
+        top: 0;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+    }
+    #jiggle {
+        position: absolute;
+        left: 2vmin;
+        bottom: 2vmin;
+        padding: 3vmin;
+        border-radius: 3vmin;
+        
+    }
+</style>
+
+<canvas id="can"></canvas>
+<button onclick="jiggle()" id="jiggle"> Jiggle </button>
+
+<script defer src="index.js"></script>
