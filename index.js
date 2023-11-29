@@ -1,6 +1,6 @@
 // Matter.use('matter-collision-events')
 
-const aspect = 1.5;
+const aspect = 1.2;
 const scaleFactor = Math.sqrt(2) / 1.1;
 const initialBallSize = 5;
 let jiggleForce = 0.001;
@@ -202,6 +202,16 @@ Matter.Events.on(engine, "collisionActive", pairs => {
     }
 });
 
+function fruit() {
+    if (fruits === undefined) {
+        fruits = new Image();
+        fruits.src = "./fruits.png";
+        window.setTimeout(() => { fruitsOn = true; }, 100);
+        return;
+    }
+    fruitsOn = !fruitsOn;
+}
+
 function jiggle() {
     engine.world.bodies.forEach(body => {
         switch (body.name) {
@@ -250,13 +260,7 @@ window.onkeyup = event => {
     if (event.key === " ") {
         jiggle();
     } else if (event.key === "f") {
-        if (fruits === undefined) {
-            fruits = new Image();
-            fruits.src = "./fruits.png";
-            window.setTimeout(() => { fruitsOn = true; }, 100);
-            return;
-        }
-        fruitsOn = !fruitsOn;
+        fruit();
     }
     /*else if (event.key === "b") {
         Matter.Composite.add(engine.world, createBall(1, 0, 0))

@@ -1,68 +1,95 @@
-<script src="matter.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title> 2048balls </title>
+		<meta http-equiv="content-language" content="en-gb">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="2048 but with balls">
+		<meta property="og:image" content="https://2048.org/favicon.ico">
+		<meta name="keywords" content="sollybunny 2048 balls 2048balls combine">
+		<style>
+			@font-face {
+				font-family: "Clear Sans";
+				src: url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.eot");
+				src: url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.eot?#iefix") format("embedded-opentype"),
+					url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.svg#clear_sans_lightregular") format("svg"),
+					url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.woff") format("woff");
+				font-weight: 200;
+				font-style: normal;
+			}
+			@font-face {
+				font-family: "Clear Sans";
+				src: url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.eot");
+				src: url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.eot?#iefix") format("embedded-opentype"),
+					url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.svg#clear_sansregular") format("svg"),
+					url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.woff") format("woff");
+				font-weight: normal;
+				font-style: normal;
+			}
+			@font-face {
+				font-family: "Clear Sans";
+				src: url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.eot");
+				src: url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.eot?#iefix") format("embedded-opentype"),
+					url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.svg#clear_sansbold") format("svg"),
+					url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.woff") format("woff");
+				font-weight: 700;
+				font-style: normal;
+			}
+		</style>
+		<style>
+			* {
+				font-family: "Clear Sans";
+				font-weight: 700;
+				color: #776e65;
+			}
+			button {
+				background: #8f7a66;
+				border-radius: 3px;
+				padding: 0 20px;
+				color: #f9f6f2;
+				height: 40px;
+				outline: none;
+				border: none;
+				cursor: pointer;
+			}
+			#can {
+				width: 100vw;
+				height: 100vh;
+				position: absolute;
+				left: 0;
+				top: 0;
+				image-rendering: pixelated;
+				image-rendering: crisp-edges;
+				user-select: none;
+			}
+			#center {
+				position: absolute;
+				bottom: 1vmin;
+				left: calc(50% - 20vmin);
+				width: 40vmin;
+			}
+				#center > * {
+					display: inline-block;
+				}
+				#jiggle {
+					float: left;
+				}
+				#fruit {
+					float: right;
+				}
+		</style>
+	</head>
+	<body>
+		<script src="matter.js"></script>
 
-<style>
-    @font-face {
-    font-family: "Clear Sans";
-    src: url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.eot");
-    src: url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.eot?#iefix") format("embedded-opentype"),
-         url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.svg#clear_sans_lightregular") format("svg"),
-         url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.woff") format("woff");
-    font-weight: 200;
-    font-style: normal;
-}
+		<canvas id="can"></canvas>
 
-@font-face {
-    font-family: "Clear Sans";
-    src: url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.eot");
-    src: url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.eot?#iefix") format("embedded-opentype"),
-         url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.svg#clear_sansregular") format("svg"),
-         url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.woff") format("woff");
-    font-weight: normal;
-    font-style: normal;
-}
+		<div id="center">
+			<button onclick="jiggle()" id="jiggle"> Jiggle </button>
+			<button onclick="fruit()" id="fruit"> 🍎 </button>
+		</div>
 
-@font-face {
-    font-family: "Clear Sans";
-    src: url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.eot");
-    src: url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.eot?#iefix") format("embedded-opentype"),
-         url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.svg#clear_sansbold") format("svg"),
-         url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.woff") format("woff");
-    font-weight: 700;
-    font-style: normal;
-}
-
-    * {
-        font-family: "Clear Sans";
-        font-weight: 700;
-        color: #776e65;
-    }
-    button {
-        background: #8f7a66;
-        border-radius: 3px;
-        padding: 0 20px;
-        color: #f9f6f2;
-        height: 40px;
-        outline: none;
-        border: none;
-    }
-    #can {
-        width: 100vw;
-        height: 100vh;
-        position: absolute;
-        left: 0;
-        top: 0;
-        image-rendering: pixelated;
-        image-rendering: crisp-edges;
-        user-select: none;
-    }
-    #jiggle {
-        position: absolute;
-        left: 2vmin;
-        bottom: 2vmin;
-    }
-</style>
-
-<canvas id="can"></canvas>
-<button onclick="jiggle()" id="jiggle"> Jiggle </button>
-
-<script defer src="index.js"></script>
+		<script defer src="index.js"></script>
+	</body>
+</html>
