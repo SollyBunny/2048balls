@@ -2,9 +2,8 @@
 
 const aspect = 1.5;
 const scaleFactor = Math.sqrt(2) / 1.1;
-const deadPoint = -55;
 const initialBallSize = 5;
-let jiggleForce = 0.0005;
+let jiggleForce = 0.001;
 let scale = 1;
 let actualScore = 1;
 let score = 1;
@@ -13,8 +12,8 @@ let cursor;
 let lastCursor;
 let cursorx = 0;
 
-const fruits = new Image();
-fruits.src = "./fruits.png";
+let fruitsOn = false;
+let fruits = undefined;
 
 const can = document.getElementById("can");
 const ctx = can.getContext("2d");
@@ -27,25 +26,54 @@ function die() {
     window.location = window.location;
 }
 
-function createWall(w, h, thick) {
-    const walls = Matter.Composite.create({ name: "wall", wallThickness: thick, wallSize: Matter.Vector.create(w, h) });
-    Matter.Composite.add(walls, [
+function renderBall(stage, radius) {
+    if (fruitsOn) {
+        ctx.fillStyle = [
+            "#f00", "#f80", "#0f0", "#ff0", "#f0f", "#f00", "#ff0", "#f80", "#0f0", "#8f0"
+        ][stage];
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+        ctx.fill();
+        const align = 240;
+        const cut = 5;
+        const scale = 0.7;
+        ctx.save();
+        ctx.scale(scale, scale);
+        ctx.drawImage(fruits, stage * align + cut, cut, align - cut * 2, align - cut * 2, -radius, -radius, radius * 2, radius * 2);
+        ctx.restore();
+    } else {
+        ctx.fillStyle = ["#eee4da", "#ede0c8", "#f2b179", "#f59563", "#f59563", "#f67c5f", "#f65e3b", "#edcf72", "#edcc61", "#edc850", "#edc53f", "#edc22e", "#3c3a32"][stage];
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = stage < 3 ? "#776e65" : "#f9f6f2";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const text = (2 ** (1 + stage)).toString();
+        ctx.font = `${radius / scale / text.length * 8}px "Clear Sans"`;
+        ctx.fillText(text, 0, 1);
+    }
+}
+
+function createWall(w, h) {
+    const thick = 100;
+    const walls = Matter.Body.create({ name: "wall", thick, wallSize: Matter.Vector.create(w, h), isStatic: true });
+    Matter.Body.setParts(walls, [
         Matter.Bodies.rectangle( // bottom
-            0, h / 2,
-            w, thick,
+            -w, h / 2 + thick / 2,
+            w * 4, thick,
             { isStatic: true }
         ),
         Matter.Bodies.rectangle( // left
-            -w / 2, -h / 2,
-            thick, h * 2,
+            -w / 2 - thick / 2, -h / 2,
+            thick, h * 3,
             { isStatic: true }
         ),
         Matter.Bodies.rectangle( // right
-            w / 2, -h / 2,
-            thick, h * 2,
+            w / 2 + thick / 2, -h / 2,
+            thick, h * 3,
             { isStatic: true }
         ),
-        
     ]);
     return walls;
 }
@@ -64,7 +92,6 @@ function place() {
     if (!cursor) return;
     Matter.Body.setStatic(cursor, false);
     score += getBallScore(cursor.ballStage);
-    lastCursor = cursor;
     cursor = undefined;
     window.setTimeout(newcursor, 200);
 }
@@ -74,7 +101,7 @@ function newcursor() {
         if (Math.random() < 0.8) break;
         stage += 1;
     }
-    cursor = createBall(stage, cursorx, -60 * aspect);
+    cursor = createBall(stage, cursorx, -50 * aspect - initialBallSize * (scaleFactor ** stage));
     Matter.Body.setStatic(cursor, true);
     Matter.Composite.add(engine.world, cursor);
 }
@@ -86,12 +113,13 @@ function frame() {
     actualScore = (actualScore + score) / 2;
     
     ctx.resetTransform();
-    ctx.clearRect(0, 0, can.width, can.height);
+    ctx.fillStyle = "#FBF8F0";
+    ctx.fillRect(0, 0, can.width, can.height);
 
     ctx.fillStyle = "black";
     ctx.font = "30px Arial";
     ctx.textAlign = "center";
-    ctx.textBaseline = "middle"
+    ctx.textBaseline = "middle";
     
     ctx.fillText(Math.round(actualScore), can.width / 2, 50);
 
@@ -103,54 +131,29 @@ function frame() {
     ctx.translate(can.width / 2, can.height / 2);
     ctx.scale(scale, scale);
 
-    ctx.strokeStyle = "red";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(-50, deadPoint);
-    ctx.lineTo(50, deadPoint);
-    ctx.stroke();
-
-    engine.world.composites.forEach(composite => {
-        switch (composite.name) {
+    let gotDeaded = false;
+    let balls = [];
+    engine.world.bodies.forEach(body => {
+        switch (body.name) {
             case "wall":
-                ctx.lineWidth = composite.wallThickness;
-                ctx.strokeStyle = "black";
-                ctx.lineCap = "round";
-                ctx.lineJoin = "round";    
+                ctx.fillStyle = "#BBADA0";
                 ctx.beginPath();
-                ctx.moveTo(-composite.wallSize.x / 2, -composite.wallSize.y / 2);
-                ctx.lineTo(-composite.wallSize.x / 2, composite.wallSize.y / 2);
-                ctx.lineTo(composite.wallSize.x / 2, composite.wallSize.y / 2);
-                ctx.lineTo(composite.wallSize.x / 2, -composite.wallSize.y / 2);
-                ctx.stroke();
+                ctx.roundRect(-body.wallSize.x / 2, -body.wallSize.y / 2, body.wallSize.x, body.wallSize.y, [0, 0, 2, 2]);
+                ctx.fill();
+                break;
+            case "ball":
+                balls.push(body);
                 break;
         }
     });
-
-    let gotDeaded = false;
-    engine.world.bodies.forEach(body => {
-        switch (body.name) {
-            case "ball":
-                ctx.fillStyle = [
-                    "#f00", "#f80", "#0f0", "#ff0", "#f0f", "#f00", "#ff0", "#f80", "#0f0", "#8f0"
-                ][body.ballStage];
-                ctx.beginPath();
-                ctx.arc(body.position.x, body.position.y, body.radius, 0, 2 * Math.PI)
-                ctx.fill();
-                const align = 240;
-                const cut = 5;
-                const scale = 0.7;
-                ctx.save();
-                ctx.translate(body.position.x, body.position.y);
-                ctx.rotate(body.angle);
-                ctx.scale(scale, scale);
-                ctx.drawImage(fruits, body.ballStage * align + cut, cut, align - cut * 2, align - cut * 2, -body.radius, -body.radius, body.radius * 2, body.radius * 2);
-                ctx.restore();
-                if (body !== cursor && body !== lastCursor)
-                    if (body.position.y < deadPoint * scale)
-                        gotDeaded = true;
-                break;
-        }
+    balls.forEach(ball => {
+        ctx.save();
+        ctx.translate(ball.position.x, ball.position.y);
+        ctx.rotate(ball.angle);
+        renderBall(ball.ballStage, ball.radius);
+        ctx.restore();
+        if (ball !== cursor && ball.position.y - ball.radius < -50 * aspect)
+            gotDeaded = true;
     });
     if (gotDeaded) {
         if (!lastDead)
@@ -167,7 +170,7 @@ function frame() {
 function resize() {
     can.width = window.innerWidth;
     can.height = window.innerHeight;
-    scale = Math.min(can.width, can.height) / 250;
+    scale = Math.min(can.width / 130, can.height / (150 * aspect));
 }
 
 Matter.Events.on(engine, "collisionActive", pairs => {
@@ -236,21 +239,30 @@ window.onmousemove = event => {
     if (!cursor) return;
     cursorx = (event.clientX - can.width / 2) / scale;
     const radius = cursor.radius;
-    if (cursorx > 45 - radius) cursorx = 45 - radius;
-    else if (cursorx < -45 + radius) cursorx = -45 + radius;
+    if (cursorx > 50 - radius) cursorx = 50 - radius;
+    else if (cursorx < -50 + radius) cursorx = -50 + radius;
     Matter.Body.setPosition(cursor, Matter.Vector.create(
         cursorx,
         cursor.position.y
     ));
 }
-window.onkeydown = event => {
+window.onkeyup = event => {
     if (event.key === " ") {
         jiggle();
-    } else if (event.key === "b") {
+    } else if (event.key === "f") {
+        if (fruits === undefined) {
+            fruits = new Image();
+            fruits.src = "./fruits.png";
+            window.setTimeout(() => { fruitsOn = true; }, 100);
+            return;
+        }
+        fruitsOn = !fruitsOn;
+    }
+    /*else if (event.key === "b") {
         Matter.Composite.add(engine.world, createBall(1, 0, 0))
     } else if (event.key === "k") {
         Matter.Composite.add(engine.world, createBall(5, 0, 0))
-    }
+    }*/
 }
 
 window.requestAnimationFrame(frame);

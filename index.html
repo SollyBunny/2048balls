@@ -1,6 +1,50 @@
 <script src="matter.js"></script>
 
 <style>
+    @font-face {
+    font-family: "Clear Sans";
+    src: url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.eot");
+    src: url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.eot?#iefix") format("embedded-opentype"),
+         url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.svg#clear_sans_lightregular") format("svg"),
+         url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.woff") format("woff");
+    font-weight: 200;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Clear Sans";
+    src: url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.eot");
+    src: url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.eot?#iefix") format("embedded-opentype"),
+         url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.svg#clear_sansregular") format("svg"),
+         url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.woff") format("woff");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Clear Sans";
+    src: url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.eot");
+    src: url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.eot?#iefix") format("embedded-opentype"),
+         url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.svg#clear_sansbold") format("svg"),
+         url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.woff") format("woff");
+    font-weight: 700;
+    font-style: normal;
+}
+
+    * {
+        font-family: "Clear Sans";
+        font-weight: 700;
+        color: #776e65;
+    }
+    button {
+        background: #8f7a66;
+        border-radius: 3px;
+        padding: 0 20px;
+        color: #f9f6f2;
+        height: 40px;
+        outline: none;
+        border: none;
+    }
     #can {
         width: 100vw;
         height: 100vh;
@@ -15,9 +59,6 @@
         position: absolute;
         left: 2vmin;
         bottom: 2vmin;
-        padding: 3vmin;
-        border-radius: 3vmin;
-        
     }
 </style>
 
