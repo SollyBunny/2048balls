@@ -1,11 +1,12 @@
 // Matter.use('matter-collision-events')
 
+const e_center = document.getElementById("center");
+
 const aspect = 1.2;
 const scaleFactor = Math.sqrt(2) / 1.1;
 const initialBallSize = 5;
 let jiggleForce = 0.001;
 let scale = 1;
-let actualScore = 1;
 let score = 1;
 let maxStage = 0;
 let cursor;
@@ -24,6 +25,21 @@ engine.velocityIterations *= 2;
 
 function die() {
     window.location = window.location;
+}
+const e_score = document.getElementById("score");
+const e_hiscore = document.getElementById("hiscore");
+let hiscore = parseInt(localStorage["2048balls.hiscore"]) || 0;
+e_hiscore.textContent = hiscore;
+function setHiscore() {
+    hiscore = score;
+    localStorage["2048balls.hiscore"] = hiscore;
+    e_hiscore.textContent = hiscore;
+}
+function setScore() {
+    if (score > hiscore) {
+        setHiscore();
+    }
+    e_score.textContent = score;
 }
 
 function renderBall(stage, radius) {
@@ -92,6 +108,7 @@ function place() {
     if (!cursor) return;
     Matter.Body.setStatic(cursor, false);
     score += getBallScore(cursor.ballStage);
+    setScore();
     cursor = undefined;
     window.setTimeout(newcursor, 200);
 }
@@ -110,23 +127,15 @@ newcursor();
 let lastDead = Date.now();
 function frame() {
 
-    actualScore = (actualScore + score) / 2;
-    
     ctx.resetTransform();
     ctx.fillStyle = "#FBF8F0";
     ctx.fillRect(0, 0, can.width, can.height);
 
-    ctx.fillStyle = "black";
     ctx.font = "30px Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     
-    ctx.fillText(Math.round(actualScore), can.width / 2, 50);
-
     const time = Date.now() - lastDead
-    if (time > 1000) {
-        ctx.fillText(`${((6000 - time) / 1000).toFixed(1)}s left to sort it out!`, can.width / 2, can.height - 50);
-    }
 
     ctx.translate(can.width / 2, can.height / 2);
     ctx.scale(scale, scale);
@@ -141,6 +150,7 @@ function frame() {
                 ctx.roundRect(-body.wallSize.x / 2, -body.wallSize.y / 2, body.wallSize.x, body.wallSize.y, [0, 0, 2, 2]);
                 ctx.fill();
                 break;
+            case "ballcombining":
             case "ball":
                 balls.push(body);
                 break;
@@ -164,6 +174,10 @@ function frame() {
     if (Date.now() - lastDead > 6000) {
         die();
     }
+    if (time > 1000) {
+        ctx.fillStyle = "#8f7a66";
+        ctx.fillText(`${((6000 - time) / 1000).toFixed(1)}s left to sort it out!`, can.width / 2, 50);
+    }
     // Matter.Composite.allComposites(engine.world).forEach(composite => {
     window.requestAnimationFrame(frame);
 }
@@ -171,6 +185,8 @@ function resize() {
     can.width = window.innerWidth;
     can.height = window.innerHeight;
     scale = Math.min(can.width / 130, can.height / (150 * aspect));
+    e_center.style.width = `${scale * 100}px`;
+    e_center.style.height = `${scale * 100 * aspect}px`;
 }
 
 Matter.Events.on(engine, "collisionActive", pairs => {
@@ -187,18 +203,27 @@ Matter.Events.on(engine, "collisionActive", pairs => {
         if (a.ballStage !== b.ballStage) continue;
         combined.add(a);
         combined.add(b);
-        score -= getBallScore(a.ballStage);
-        score -= getBallScore(b.ballStage);
-        Matter.Composite.remove(engine.world, b);
-        a.ballStage += 1;
-        score += getBallScore(a.ballStage);
-        a.radius *= scaleFactor;
-        Matter.Body.setPosition(a, Matter.Vector.create(
-            (a.position.x + b.position.x) / 2,
-            (a.position.y + b.position.y) / 2
-        ));
-        maxStage = Math.max(maxStage, a.ballStage);
-        Matter.Body.scale(a, scaleFactor, scaleFactor);
+        a.name = b.name = "ballcombining";
+        a.isStatic = b.isStatic = true;
+        const velocity = Matter.Vector.div(Matter.Vector.add(a.velocity, b.velocity), 2); 
+        const center = Matter.Vector.div(Matter.Vector.add(a.position, b.position), 2);
+        window.setTimeout(() => {
+            Matter.Composite.remove(engine.world, b);
+            a.name = "ball";
+            a.isStatic = false;
+            score -= getBallScore(a.ballStage);
+            score -= getBallScore(b.ballStage);
+            a.ballStage += 1;
+            score += getBallScore(a.ballStage);
+            setScore();
+            a.radius *= scaleFactor;
+            Matter.Body.setAngle(a, 0);
+            Matter.Body.setPosition(a, center);
+            Matter.Body.setVelocity(a, velocity);
+            a.angularVelocity = 0;
+            maxStage = Math.max(maxStage, a.ballStage);
+            Matter.Body.scale(a, scaleFactor, scaleFactor);
+        }, 50);
     }
 });
 
@@ -261,6 +286,15 @@ window.onkeyup = event => {
         jiggle();
     } else if (event.key === "f") {
         fruit();
+    } else if (event.key === "K") {
+        Matter.Composite.add(engine.world, createBall(5, 0, 0))
+    } else if (event.key === "B") {
+        for (let i = 0; i < 32; ++i) {
+            Matter.Composite.add(engine.world, createBall(0, 
+                Math.random() * 80 - 40,    
+                Math.random() * 80 - 40
+            ));
+        }
     }
     /*else if (event.key === "b") {
         Matter.Composite.add(engine.world, createBall(1, 0, 0))
