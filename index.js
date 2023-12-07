@@ -23,9 +23,6 @@ const engine = Matter.Engine.create();
 engine.positionIterations *= 2;
 engine.velocityIterations *= 2;
 
-function die() {
-    window.location = window.location;
-}
 const e_score = document.getElementById("score");
 const e_hiscore = document.getElementById("hiscore");
 let hiscore = parseInt(localStorage["2048balls.hiscore"]) || 0;
@@ -122,7 +119,6 @@ function newcursor() {
     Matter.Body.setStatic(cursor, true);
     Matter.Composite.add(engine.world, cursor);
 }
-newcursor();
 
 let lastDead = Date.now();
 function frame() {
@@ -174,7 +170,8 @@ function frame() {
     if (Date.now() - lastDead > 6000) {
         die();
     }
-    if (time > 1000) {
+    ctx.resetTransform();
+    if (Date.now() - lastDead > 1000) {
         ctx.fillStyle = "#8f7a66";
         ctx.fillText(`${((6000 - time) / 1000).toFixed(1)}s left to sort it out!`, can.width / 2, 50);
     }
@@ -257,7 +254,8 @@ function jiggle() {
 
 window.addEventListener("resize", resize);
 resize();
-Matter.Composite.add(engine.world, createWall(100, 100 * aspect, 10));
+const wall = createWall(100, 100 * aspect, 10);
+Matter.Composite.add(engine.world, wall);
 for (let i = 0; i < 1; ++i) {
     const ball = createBall(0, Math.random() * 100 - 50, Math.random() * 100 - 50);
     Matter.Composite.add(engine.world, ball);
@@ -301,6 +299,35 @@ window.onkeyup = event => {
     } else if (event.key === "k") {
         Matter.Composite.add(engine.world, createBall(5, 0, 0))
     }*/
+}
+
+let dying = false;
+function reset() {
+    lastDead = Date.now();
+    wall.parts[1].isSensor = false;
+    score = 0;
+    setScore();
+    dying = false;
+    wall.friction = 1;
+    engine.world.bodies.forEach(body => {
+        switch (body.name) {
+            case "ballcombining":
+            case "ball":
+                Matter.Composite.removeBody(engine.world, body);
+                break;
+        }
+    });
+    newcursor();
+}
+reset();
+
+function die() {
+    if (dying) return;
+    dying = true;
+    wall.parts[1].isSensor = true;
+    wall.friction = 0;
+    jiggle();
+    window.setTimeout(reset, 2000);
 }
 
 window.requestAnimationFrame(frame);
