@@ -2,49 +2,40 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title> 2048balls </title>
+		<title> 2048 Balls </title>
 		<meta http-equiv="content-language" content="en-gb">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta name="description" content="2048 but with balls">
 		<meta property="og:image" content="https://2048.org/favicon.ico">
 		<meta name="keywords" content="sollybunny 2048 balls 2048balls combine">
+		<link rel="icon" type="image/x-icon" href="./favicon.ico">
 		<style>
 			@font-face {
 				font-family: "Clear Sans";
-				src: url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.eot");
-				src: url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.eot?#iefix") format("embedded-opentype"),
-					url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.svg#clear_sans_lightregular") format("svg"),
-					url("https://www.2048.org/style/fonts/ClearSans-Light-webfont.woff") format("woff");
-				font-weight: 200;
-				font-style: normal;
-			}
-			@font-face {
-				font-family: "Clear Sans";
-				src: url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.eot");
-				src: url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.eot?#iefix") format("embedded-opentype"),
-					url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.svg#clear_sansregular") format("svg"),
-					url("https://www.2048.org/style/fonts/ClearSans-Regular-webfont.woff") format("woff");
-				font-weight: normal;
-				font-style: normal;
-			}
-			@font-face {
-				font-family: "Clear Sans";
-				src: url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.eot");
-				src: url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.eot?#iefix") format("embedded-opentype"),
-					url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.svg#clear_sansbold") format("svg"),
-					url("https://www.2048.org/style/fonts/ClearSans-Bold-webfont.woff") format("woff");
+				src: url("./clearsans.woff2") format("woff2");
+				font-display: swap;
 				font-weight: 700;
 				font-style: normal;
 			}
 		</style>
 		<style>
+			:root {
+				/* scale = Math.min(can.width / 130, can.height / (150 * aspect)); */
+				--aspect: 1;
+				--scale: calc(min(100vw / 130, 100vh / (150 * var(--aspect))));
+			}
 			* {
 				font-family: "Clear Sans";
 				font-weight: 700;
 				color: #776e65;
 			}
+			body {
+				background-color: #fbf8f0;
+				overflow: hidden;
+				contain: clip;
+			}
 			button {
-				background-color: #8f7a66;
+				background-color: #694D4A;
 				border-radius: 3px;
 				padding: 0 20px;
 				color: #f9f6f2;
@@ -63,6 +54,7 @@
 				min-width: 5ch;
 				position: relative;
 				text-align: center;
+				min-width: 10vmin;
 			}
 				.score::before {
 					content: attr(title);
@@ -85,39 +77,55 @@
 				image-rendering: crisp-edges;
 				user-select: none;
 			}
-			#center {
+			#background {
 				position: absolute;
-				transform: translate(-50%, -50%);
-				left: 50vw;
-				top: 50vh;
-				pointer-events: none;
+				/* width = `${scale * 100}px`; */
+				/* height = `${scale * 100 * aspect}px`; */
+				left: calc(50vw - var(--scale) * 50);
+				top: calc(50vh - var(--scale) * 50 * var(--aspect));
+				width: calc(var(--scale) * 100);
+				height: calc(var(--scale) * 100 * var(--aspect));
+				background-color: #BBADA0;
+				border-radius: 0 0 1vmin 1vmin;
 			}
-				#centerbot {
-					position: absolute;
-					top: 100%;
-					margin-top: 2vmin;
-					pointer-events: all;
-					width: 100%;
-					display: flex;
+			#centerbot {
+				position: absolute;
+				top: calc(var(--scale) * 50 * var(--aspect) + 50vh + 2vmin);
+				left: calc(50vw - var(--scale) * 50);
+				width: calc(var(--scale) * 100);
+				display: flex;
+				flex-wrap: wrap;
+			}
+				#centerbotpad {
+					flex-grow: 1;
 				}
-					#centerbotpad {
-						flex-grow: 1;
+				.centerbotpart {
+					white-space: nowrap;
+					display: flex;
+					margin-bottom: 2vmin;
+				}
+					.centerbotpart > button {
+						min-width: 10vmin;
 					}
-					#fruit, #hiscore {
-						margin-left: 2vmin;
-					}
+				#fruit, #hiscore {
+					margin-left: 2vmin;
+				}
 		</style>
 	</head>
 	<body>
 		<script src="matter.js"></script>
 
+		<div id="background"></div>
+
 		<canvas id="can"></canvas>
 
-		<div id="center">
-			<div id="centerbot">
+		<div id="centerbot">
+			<div class="centerbotpart">
 				<button onclick="jiggle()" id="jiggle"> Jiggle </button>
 				<button onclick="fruit()" id="fruit"> 🍎 </button>
-				<div id="centerbotpad"></div>
+			</div>
+			<div id="centerbotpad"></div>
+			<div class="centerbotpart">
 				<div class="score" id="score" title="Score">0</div>
 				<div class="score" id="hiscore" title="Hi-Score">0</div>
 			</div>
